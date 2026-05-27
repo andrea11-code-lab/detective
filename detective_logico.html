@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Detective Lógico</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Special+Elite&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a1208;
+  --paper: #f5edd6;
+  --paper2: #ede0c0;
+  --aged: #c9b88a;
+  --stain: #b8860b;
+  --red: #8b1a1a;
+  --red2: #c0392b;
+  --green: #1a5c2a;
+  --muted: #6b5a3a;
+  --stamp: #7a2020;
+  --typewriter: #2c1a0e;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: #0d0a06;
+  min-height: 100vh;
+  font-family: 'Special Elite', cursive;
+  overflow-x: hidden;
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='10' cy='10' r='4' fill='%23c9b88a' opacity='0.8'/%3E%3C/svg%3E") 10 10, auto;
+}
+
+/* ── GRAIN OVERLAY ── */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.08'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:999; opacity:0.4;
+}
+
+/* ── DESK BACKGROUND ── */
+.desk {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 30%, #1a1208 0%, #0d0a06 100%);
+  padding: 30px 20px 60px;
+  position: relative;
+}
+
+.desk::after {
+  content:'';
+  position:fixed; bottom:0; left:0; right:0; height:120px;
+  background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+  pointer-events:none;
+}
+
+/* ── LAMP GLOW ── */
+.lamp-glow {
+  position: fixed;
+  top: -100px; left: 50%;
+  transform: translateX(-50%);
+  width: 600px; height: 400px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255,220,120,0.12) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── NEWSPAPER HEADER ── */
+.newspaper-header {
+  max-width: 780px;
+  margin: 0 auto 30px;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-top: 8px solid var(--ink);
+  padding: 18px 28px 14px;
+  position: relative;
+  box-shadow: 4px 4px 0 #0d0a06, 8px 8px 20px rgba(0,0,0,0.6);
+  transform: rotate(-0.3deg);
+  z-index: 10;
+}
+
+.paper-texture {
+  position: absolute; inset:0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(180,160,100,0.15) 27px, rgba(180,160,100,0.15) 28px);
+  pointer-events:none; border-radius:2px;
+}
+
+.newspaper-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2rem, 6vw, 3.8rem);
+  font-weight: 900;
+  text-align: center;
+  color: var(--ink);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 3px double var(--ink);
+  padding-bottom: 10px;
+  margin-bottom: 8px;
+}
+
+.paper-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--aged);
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+}
+
+.paper-subtitle {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+
+/* ── CASE FILE (main card) ── */
+.case-file {
+  max-width: 780px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 10;
+}
+
+/* ── THEORY CARD ── */
+.theory-card {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  position: relative;
+  box-shadow: 3px 3px 0 #0d0a06, 6px 6px 14px rgba(0,0,0,0.5);
+  transform: rotate(0.2deg);
+  animation: slideIn 0.5s ease backwards;
+}
+
+@keyframes slideIn {
+  from { opacity:0; transform: rotate(0.2deg) translateY(20px); }
+  to   { opacity:1; transform: rotate(0.2deg) translateY(0); }
+}
+
+.theory-card::before {
+  content: attr(data-label);
+  position: absolute;
+  top: -12px; left: 20px;
+  background: var(--red);
+  color: #f5edd6;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.paper-texture { position:absolute; inset:0; background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(180,160,100,0.12) 27px, rgba(180,160,100,0.12) 28px); pointer-events:none; }
+
+.theory-card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.4rem;
+  color: var(--ink);
+  margin-bottom: 14px;
+  border-bottom: 2px solid var(--aged);
+  padding-bottom: 8px;
+}
+
+.theory-card p {
+  color: var(--typewriter);
+  font-size: 0.88rem;
+  line-height: 1.9;
+  margin-bottom: 10px;
+}
+
+.clue-box {
+  background: rgba(139,26,26,0.06);
+  border-left: 4px solid var(--red);
+  padding: 12px 16px;
+  margin: 12px 0;
+  font-size: 0.85rem;
+  line-height: 1.8;
+  color: var(--typewriter);
+}
+
+.formula-stamp {
+  display: inline-block;
+  background: var(--paper2);
+  border: 1.5px solid var(--stain);
+  color: var(--stain);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.85rem;
+  padding: 8px 14px;
+  margin: 6px 4px;
+  letter-spacing: 0.04em;
+  box-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+}
+
+.stamped {
+  display: inline-block;
+  border: 3px solid var(--stamp);
+  color: var(--stamp);
+  font-family: 'Playfair Display', serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  transform: rotate(-8deg);
+  opacity: 0.8;
+  margin: 6px;
+}
+
+/* ── CASE CARD ── */
+.case-card {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  padding: 26px 28px;
+  margin-bottom: 20px;
+  position: relative;
+  box-shadow: 3px 3px 0 #0d0a06, 6px 6px 14px rgba(0,0,0,0.5);
+  transform: rotate(-0.4deg);
+}
+
+.case-card::before {
+  content: attr(data-label);
+  position: absolute;
+  top: -12px; left: 20px;
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.case-number {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.case-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.case-subtitle {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-style: italic;
+  margin-bottom: 18px;
+}
+
+.witness-block {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  background: var(--paper2);
+  border: 1px solid var(--aged);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.witness-icon {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.witness-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--red);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
+
+.witness-text {
+  font-size: 0.88rem;
+  color: var(--typewriter);
+  line-height: 1.75;
+  font-style: italic;
+}
+
+.prop-tag {
+  display: inline-block;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  padding: 2px 7px;
+  margin: 2px 2px 2px 0;
+  letter-spacing: 0.04em;
+}
+
+/* ── TASK SECTION ── */
+.task-section {
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  position: relative;
+  box-shadow: 3px 3px 0 #0d0a06, 6px 6px 14px rgba(0,0,0,0.5);
+  transform: rotate(0.15deg);
+}
+
+.task-section::before {
+  content: attr(data-label);
+  position: absolute;
+  top: -12px; left: 20px;
+  background: var(--green);
+  color: #e8f5e9;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.task-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+
+/* ── STEP TASKS ── */
+.step-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px dashed var(--aged);
+}
+
+.step-row:last-child { border-bottom: none; margin-bottom: 0; }
+
+.step-num {
+  width: 30px; height: 30px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex; align-items:center; justify-content:center;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.step-content { flex: 1; }
+
+.step-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+}
+
+.step-instruction {
+  font-size: 0.87rem;
+  color: var(--typewriter);
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+
+/* ── INPUTS ── */
+.logic-input {
+  background: var(--paper2);
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  padding: 10px 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.92rem;
+  color: var(--ink);
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  letter-spacing: 0.03em;
+}
+
+.logic-input:focus {
+  border-color: var(--red);
+  background: #fdf6e3;
+  box-shadow: inset 0 2px 6px rgba(139,26,26,0.08);
+}
+
+.logic-input.correct {
+  border-color: var(--green) !important;
+  background: #f0faf0 !important;
+}
+
+.logic-input.wrong {
+  border-color: var(--red2) !important;
+  background: #fff5f5 !important;
+  animation: shake 0.35s ease;
+}
+
+@keyframes shake {
+  0%,100% { transform:translateX(0); }
+  20%      { transform:translateX(-6px); }
+  40%      { transform:translateX(6px); }
+  60%      { transform:translateX(-4px); }
+  80%      { transform:translateX(4px); }
+}
+
+.hint-strip {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-style: italic;
+  margin-top: 5px;
+  font-family: 'Special Elite', cursive;
+}
+
+/* ── TRUTH TABLE BUILDER ── */
+.tt-grid {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.82rem;
+  margin: 12px 0;
+}
+
+.tt-grid th {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 12px;
+  text-align: center;
+  border: 1px solid var(--ink);
+  letter-spacing: 0.06em;
+}
+
+.tt-grid td {
+  border: 1px solid var(--aged);
+  padding: 6px 8px;
+  text-align: center;
+  background: var(--paper2);
+}
+
+.tt-cell-btn {
+  background: var(--paper);
+  border: 1.5px solid var(--aged);
+  color: var(--typewriter);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  width: 42px; height: 32px;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.04em;
+}
+
+.tt-cell-btn:hover { background: var(--paper2); border-color: var(--ink); }
+.tt-cell-btn.val-V { background: #e8f5e9; border-color: var(--green); color: var(--green); }
+.tt-cell-btn.val-F { background: #fde8e8; border-color: var(--red); color: var(--red); }
+.tt-cell-btn.locked { cursor: default; pointer-events:none; }
+
+/* ── PROPOSITION TAGS (drag) ── */
+.prop-area {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.prop-pill {
+  background: var(--paper2);
+  border: 2px solid var(--ink);
+  padding: 8px 14px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--ink);
+  cursor: grab;
+  user-select: none;
+  transition: transform 0.1s, box-shadow 0.1s;
+  position: relative;
+}
+
+.prop-pill:active { cursor: grabbing; transform: scale(1.05) rotate(1deg); box-shadow: 3px 3px 8px rgba(0,0,0,0.3); }
+.prop-pill.dragging { opacity: 0.4; }
+.prop-pill.used { opacity: 0.3; pointer-events:none; text-decoration:line-through; }
+
+.drop-zone {
+  min-height: 44px;
+  border: 2px dashed var(--aged);
+  padding: 8px 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  transition: border-color 0.2s, background 0.2s;
+  margin: 8px 0;
+  min-width: 100%;
+}
+
+.drop-zone.drag-over { border-color: var(--red); background: rgba(139,26,26,0.04); }
+.drop-zone .prop-pill { margin: 0; }
+
+/* ── VERIFY BUTTON ── */
+.btn-verify {
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  padding: 13px 30px;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-verify::after {
+  content: '';
+  position:absolute; inset:0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+}
+
+.btn-verify:hover {
+  background: var(--red);
+  transform: translateY(-2px);
+  box-shadow: 3px 3px 0 #0d0a06;
+}
+
+.btn-verify:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+
+.btn-next {
+  background: var(--green);
+  color: #f0faf0;
+  border: none;
+  padding: 13px 30px;
+  font-family: 'Special Elite', cursive;
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+  display: none;
+}
+
+.btn-next:hover { background: #1a7a35; transform: translateY(-2px); box-shadow: 3px 3px 0 #0d0a06; }
+
+/* ── FEEDBACK ── */
+.feedback-panel {
+  margin-top: 16px;
+  padding: 14px 18px;
+  border: 2px solid transparent;
+  font-size: 0.85rem;
+  line-height: 1.75;
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+
+.feedback-panel.show { display: block; }
+
+.feedback-panel.success {
+  border-color: var(--green);
+  background: rgba(26,92,42,0.06);
+  color: var(--green);
+}
+
+.feedback-panel.error {
+  border-color: var(--red2);
+  background: rgba(192,57,43,0.06);
+  color: var(--red);
+}
+
+.feedback-panel strong { font-family: 'Playfair Display', serif; font-size: 1rem; display:block; margin-bottom:6px; }
+
+/* ── HUD BAR ── */
+.hud-bar {
+  max-width: 780px;
+  margin: 0 auto 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  z-index: 10;
+  position: relative;
+}
+
+.hud-item {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--aged);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+.hud-val {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e8d5a0;
+  display: block;
+  margin-top: 2px;
+}
+
+.hud-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.hud-dot {
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--aged);
+  transition: background 0.3s;
+}
+
+.hud-dot.active { background: #e8d5a0; box-shadow: 0 0 8px rgba(232,213,160,0.5); }
+.hud-dot.done { background: var(--green); box-shadow: 0 0 6px rgba(26,92,42,0.4); }
+
+/* ── SOLVED SCREEN ── */
+.solved-overlay {
+  background: var(--paper);
+  border: 4px solid var(--ink);
+  padding: 40px 36px;
+  text-align: center;
+  position: relative;
+  box-shadow: 6px 6px 0 #0d0a06, 12px 12px 30px rgba(0,0,0,0.7);
+  transform: rotate(-0.5deg);
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.solved-overlay .paper-texture { position:absolute;inset:0; }
+
+.solved-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+
+.solved-sub {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 28px;
+  font-style: italic;
+}
+
+.score-badge {
+  display: inline-block;
+  border: 3px double var(--ink);
+  padding: 14px 28px;
+  margin-bottom: 24px;
+}
+
+.score-num {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 2.4rem;
+  font-weight: 600;
+  color: var(--stain);
+  display: block;
+}
+
+.score-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.btn-restart {
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  padding: 14px 32px;
+  font-family: 'Special Elite', cursive;
+  font-size: 1rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-restart:hover { background: var(--red); transform:translateY(-2px); box-shadow:3px 3px 0 #0d0a06; }
+
+/* ── PROGRESS BAR ── */
+.progress-track {
+  max-width: 780px;
+  margin: 0 auto 18px;
+  height: 4px;
+  background: rgba(200,180,120,0.15);
+  position: relative;
+  z-index:10;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--stain), #e8c060);
+  transition: width 0.6s ease;
+}
+
+/* ── CONNECTOR TASK ── */
+.connector-area {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+
+.conn-col {
+  flex: 1;
+  min-width: 140px;
+}
+
+.conn-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.conn-item {
+  background: var(--paper2);
+  border: 1.5px solid var(--aged);
+  padding: 9px 12px;
+  margin-bottom: 8px;
+  font-size: 0.84rem;
+  color: var(--typewriter);
+  font-family: 'IBM Plex Mono', monospace;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.conn-item:hover { border-color: var(--ink); background: #fdf6e3; }
+.conn-item.selected { border-color: var(--red); background: rgba(139,26,26,0.08); color: var(--red); font-weight:600; }
+.conn-item.matched { border-color: var(--green); background: rgba(26,92,42,0.08); color: var(--green); pointer-events:none; }
+.conn-item.wrong-flash { animation: shake 0.3s ease; border-color: var(--red2); }
+
+.conn-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--aged);
+  font-size: 1.4rem;
+  padding-top: 32px;
+}
+
+/* ── CLASSIFY TASK ── */
+.classify-zones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 12px 0;
+}
+
+.classify-zone {
+  border: 2px dashed var(--aged);
+  padding: 14px;
+  min-height: 80px;
+  transition: all 0.2s;
+}
+
+.classify-zone.drag-over { border-color: var(--red); background: rgba(139,26,26,0.04); }
+
+.classify-title {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.classify-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 40px;
+  justify-content: center;
+}
+
+/* ── SCREENS ── */
+.screen { display:none; }
+.screen.active { display:block; }
+
+@media (max-width: 520px) {
+  .newspaper-header h1 { font-size: 1.8rem; }
+  .theory-card, .case-card, .task-section { padding: 18px 16px; }
+  .classify-zones { grid-template-columns: 1fr; }
+  .connector-area { flex-direction: column; }
+}
+</style>
+</head>
+<body>
+<div class="lamp-glow"></div>
+<div class="desk">
+
+  <!-- WELCOME -->
+  <div id="screen-welcome" class="screen active">
+    <div class="newspaper-header">
+      <div class="paper-texture"></div>
+      <div class="paper-meta">
+        <span>Vol. I — Edición Especial</span>
+        <span>LÓGICA MATEMÁTICA APLICADA</span>
+        <span>Precio: Tu razonamiento</span>
+      </div>
+      <h1>Detective Lógico</h1>
+      <div class="paper-subtitle">«La lógica es el arma del detective — úsala con precisión»</div>
+    </div>
+
+    <div class="case-file">
+      <div class="theory-card" data-label="Expediente de Bienvenida" style="transform:rotate(-0.3deg)">
+        <div class="paper-texture"></div>
+        <h2>¿Cómo funciona este caso?</h2>
+        <p>Eres un detective de la Unidad de Crímenes Lógicos. Cada caso te presenta <strong>pistas en lenguaje natural</strong> que debes traducir a proposiciones, operar con conectivos y extraer conclusiones válidas.</p>
+        <div class="clue-box">
+          🕵️ <strong>No hay selección múltiple.</strong> Tú <em>escribes</em> las proposiciones, <em>completas</em> tablas de verdad y <em>arrastras</em> piezas para construir argumentos. Solo la lógica correcta resuelve el caso.
+        </div>
+        <p>Tienes <strong>3 casos</strong> de dificultad creciente. Cada uno te enseña un concepto nuevo antes de pedirte que lo uses.</p>
+        <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
+          <span class="stamped">Caso 1: Proposiciones</span>
+          <span class="stamped" style="transform:rotate(3deg)">Caso 2: Conectivos</span>
+          <span class="stamped" style="transform:rotate(-5deg)">Caso 3: Inferencia</span>
+        </div>
+        <br>
+        <button class="btn-verify" onclick="startCase(0)">Abrir primer expediente →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="screen-game" class="screen">
+    <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="hud-bar">
+      <div class="hud-item">Caso <span class="hud-val" id="hud-case">1/3</span></div>
+      <div class="hud-item">
+        <span style="display:block;margin-bottom:4px;">Progreso</span>
+        <div class="hud-dots" id="hud-dots"></div>
+      </div>
+      <div class="hud-item">Puntos <span class="hud-val" id="hud-pts">0</span></div>
+    </div>
+    <div class="case-file" id="case-container"></div>
+  </div>
+
+  <!-- END -->
+  <div id="screen-end" class="screen">
+    <div class="case-file" style="padding-top:30px;">
+      <div class="solved-overlay">
+        <div class="paper-texture"></div>
+        <div style="font-size:3rem; margin-bottom:12px;">🔍</div>
+        <div class="solved-title">¡Caso Cerrado!</div>
+        <div class="solved-sub">Resolviste los tres expedientes usando lógica formal. La Unidad de Crímenes Lógicos te felicita, detective.</div>
+        <div class="score-badge">
+          <span class="score-num" id="final-score">0</span>
+          <span class="score-label">puntos totales</span>
+        </div>
+        <div id="final-breakdown" style="font-family:'IBM Plex Mono',monospace; font-size:0.78rem; color:var(--muted); margin-bottom:20px; line-height:2;"></div>
+        <button class="btn-restart" onclick="restartGame()">Reabrir expedientes →</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════ */
+let G = {
+  caseIdx: 0,
+  stepIdx: 0,
+  score: 0,
+  caseScores: [0,0,0],
+  totalSteps: 0
+};
+
+function updateHUD() {
+  document.getElementById('hud-case').textContent = (G.caseIdx+1) + '/3';
+  document.getElementById('hud-pts').textContent = G.score;
+  const dots = document.getElementById('hud-dots');
+  const steps = CASES[G.caseIdx].steps.length;
+  dots.innerHTML = '';
+  for (let i=0;i<steps;i++) {
+    const d = document.createElement('div');
+    d.className = 'hud-dot' + (i < G.stepIdx ? ' done' : i===G.stepIdx ? ' active' : '');
+    dots.appendChild(d);
+  }
+  const totalSteps = CASES.reduce((a,c)=>a+c.steps.length,0);
+  const done = CASES.slice(0,G.caseIdx).reduce((a,c)=>a+c.steps.length,0) + G.stepIdx;
+  document.getElementById('prog-fill').style.width = (done/totalSteps*100)+'%';
+}
+
+/* ═══════════════════════════════════════════════
+   CASES DATA
+═══════════════════════════════════════════════ */
+const CASES = [
+
+/* ══ CASO 1: Proposiciones ══ */
+{
+  title: "El Robo del Teorema",
+  subtitle: "Un misterioso ladrón robó la demostración más importante del siglo.",
+  number: "Exp. #001 — Dificultad: Iniciado",
+  icon: "📜",
+  theory: `
+    <h2>Lección: Proposiciones Lógicas</h2>
+    <p>Una <strong>proposición</strong> es un enunciado declarativo con valor de verdad definido: <em>Verdadero (V)</em> o <em>Falso (F)</em>. No puede ser ambos.</p>
+    <div class="clue-box">
+      ✅ <strong>Proposición:</strong> "El sospechoso estaba en la biblioteca." → V o F<br>
+      ❌ <strong>No es proposición:</strong> "¿Dónde estaba el sospechoso?" → pregunta<br>
+      ❌ <strong>No es proposición:</strong> "x cometió el crimen" → valor indeterminado
+    </div>
+    <p>Las proposiciones se simbolizan con letras: <span class="formula-stamp">p</span> <span class="formula-stamp">q</span> <span class="formula-stamp">r</span></p>
+    <p>La <strong>negación</strong> invierte el valor: si p = V, entonces ¬p = F.</p>
+  `,
+  steps: [
+    {
+      type: 'classify',
+      label: 'Tarea 1 — Clasificación de Pistas',
+      instruction: 'El testigo dejó estas notas en la escena. Arrastra cada enunciado a la categoría correcta: ¿es una proposición lógica o no?',
+      items: [
+        { text: '"El reloj se detuvo a las 3:00 AM."', isProposition: true },
+        { text: '"¿Quién entró por la ventana?"', isProposition: false },
+        { text: '"Todos los sospechosos tienen coartada."', isProposition: true },
+        { text: '"¡Cierra esa puerta!"', isProposition: false },
+        { text: '"x robó el documento."', isProposition: false },
+        { text: '"La llave estaba en el cajón."', isProposition: true },
+      ],
+      points: 120,
+      explanation: 'Las preguntas y órdenes no pueden ser V ni F. Las variables sin valor tampoco. Solo los enunciados declarativos con valor definido son proposiciones.'
+    },
+    {
+      type: 'write_props',
+      label: 'Tarea 2 — Simbolizar Pistas',
+      instruction: 'El inspector encontró estas pistas. Escribe la letra proposicional (p, q o r) que corresponde a la negación indicada.',
+      items: [
+        { given: 'p = "El mayordomo estuvo en la cocina"', ask: '¿Cómo escribes "El mayordomo NO estuvo en la cocina"?', answer: '¬p', hint: 'La negación de p se escribe con el símbolo ¬ antes de la letra.' },
+        { given: 'q = "La ventana estaba cerrada"', ask: '¿Cómo escribes "La ventana NO estaba cerrada"?', answer: '¬q', hint: 'Mismo patrón: ¬ + letra.' },
+        { given: 'r = "El ladrón actuó solo"', ask: 'Si ¬r es V, ¿qué valor tiene r?', answer: 'F', hint: 'La negación invierte el valor. ¬r = V implica r = ?' },
+      ],
+      points: 100,
+    },
+    {
+      type: 'truth_fill',
+      label: 'Tarea 3 — Completar Tabla de Verdad',
+      instruction: 'La computadora del laboratorio tiene una tabla de verdad incompleta. Haz clic en cada celda para alternarla entre V y F hasta completarla correctamente.',
+      headers: ['p', '¬p'],
+      givenRows: [[null,null],[null,null]],
+      answers:   [['V','F'],['F','V']],
+      colsEditable: [false, true],
+      preset: [['V',null],['F',null]],
+      points: 80,
+      explanation: 'La negación siempre invierte: si p=V entonces ¬p=F, y si p=F entonces ¬p=V.'
+    }
+  ]
+},
+
+/* ══ CASO 2: Conectivos ══ */
+{
+  title: "La Alianza Sospechosa",
+  subtitle: "Dos cómplices usaron señales lógicas para comunicarse sin ser detectados.",
+  number: "Exp. #002 — Dificultad: Intermedio",
+  icon: "🤝",
+  theory: `
+    <h2>Lección: Conectivos Lógicos</h2>
+    <p>Los conectivos combinan proposiciones simples en compuestas:</p>
+    <div class="clue-box">
+      <span class="formula-stamp">p ∧ q</span> <strong>Conjunción</strong> — "p Y q" — Verdadera solo si AMBAS son V<br>
+      <span class="formula-stamp">p ∨ q</span> <strong>Disyunción</strong> — "p O q" — Falsa solo si AMBAS son F<br>
+      <span class="formula-stamp">¬p</span> <strong>Negación</strong> — "NO p" — Invierte el valor
+    </div>
+    <p>Regla de oro de la conjunción: <em>"La cadena se rompe por el eslabón más débil."</em> Un solo Falso basta para que p ∧ q sea Falsa.</p>
+    <p>Regla de oro de la disyunción: <em>"Basta con un testigo."</em> Un solo Verdadero basta para que p ∨ q sea Verdadera.</p>
+  `,
+  steps: [
+    {
+      type: 'truth_fill',
+      label: 'Tarea 1 — Tabla de Verdad: Conjunción',
+      instruction: 'Completa la tabla de verdad de p ∧ q. Haz clic en las celdas grises para alternar V/F.',
+      headers: ['p', 'q', 'p ∧ q'],
+      givenRows: [[null,null,null],[null,null,null],[null,null,null],[null,null,null]],
+      answers:   [['V','V','V'],['V','F','F'],['F','V','F'],['F','F','F']],
+      colsEditable: [false,false,true],
+      preset: [['V','V',null],['V','F',null],['F','V',null],['F','F',null]],
+      points: 100,
+      explanation: 'La conjunción solo es V cuando AMBAS son V. Tres de las cuatro filas resultan Falsas.'
+    },
+    {
+      type: 'eval_formula',
+      label: 'Tarea 2 — Descifrar el Código',
+      instruction: 'Los cómplices enviaron mensajes cifrados como fórmulas lógicas. Dado p = V y q = F, escribe el valor (V o F) de cada expresión.',
+      items: [
+        { formula: 'p ∧ q', p: true, q: false, answer: 'F', hint: 'V ∧ F = ?' },
+        { formula: 'p ∨ q', p: true, q: false, answer: 'V', hint: 'V ∨ F = ?' },
+        { formula: '¬p ∨ q', p: true, q: false, answer: 'F', hint: 'Primero calcula ¬p, luego aplica ∨' },
+        { formula: '¬(p ∧ q)', p: true, q: false, answer: 'V', hint: 'Primero calcula p∧q, luego niegalo' },
+      ],
+      points: 120,
+    },
+    {
+      type: 'connect',
+      label: 'Tarea 3 — Unir Fórmula con Descripción',
+      instruction: 'Conecta cada fórmula lógica con el enunciado en lenguaje natural que la representa. Haz clic en una fórmula, luego en su descripción.',
+      pairs: [
+        { formula: 'p ∧ ¬q', description: '"Llueve Y NO hace sol"' },
+        { formula: '¬p ∨ q', description: '"NO hay testigos O hay evidencia"' },
+        { formula: '¬(p ∨ q)', description: '"No es cierto que llueva o haga sol"' },
+        { formula: 'p ∧ q', description: '"El sospechoso mintió Y tiene coartada"' },
+      ],
+      points: 100,
+    }
+  ]
+},
+
+/* ══ CASO 3: Inferencia ══ */
+{
+  title: "El Testamento Lógico",
+  subtitle: "Un lógico dejó su herencia oculta en un argumento. Solo quien la resuelva la merece.",
+  number: "Exp. #003 — Dificultad: Avanzado",
+  icon: "⚖️",
+  theory: `
+    <h2>Lección: Implicación y Argumentos Válidos</h2>
+    <p>La <strong>implicación</strong> p → q ("Si p, entonces q") es falsa <em>únicamente</em> cuando p es V y q es F.</p>
+    <div class="clue-box">
+      <span class="formula-stamp">p → q</span><br>
+      V → V = <strong style="color:var(--green)">V</strong> &nbsp;&nbsp;
+      V → F = <strong style="color:var(--red)">F</strong> &nbsp;&nbsp;
+      F → V = <strong style="color:var(--green)">V</strong> &nbsp;&nbsp;
+      F → F = <strong style="color:var(--green)">V</strong>
+    </div>
+    <p><strong>Modus Ponens:</strong> Si tenemos p→q y sabemos que p es V, concluimos q es V.</p>
+    <p><strong>Modus Tollens:</strong> Si tenemos p→q y sabemos que q es F, concluimos que p es F.</p>
+    <div class="clue-box">
+      ❌ <strong>Falacia de afirmar el consecuente:</strong> p→q, q ∴ p — ¡INVÁLIDO!<br>
+      ❌ <strong>Falacia de negar el antecedente:</strong> p→q, ¬p ∴ ¬q — ¡INVÁLIDO!
+    </div>
+  `,
+  steps: [
+    {
+      type: 'truth_fill',
+      label: 'Tarea 1 — Tabla de Verdad: Condicional',
+      instruction: 'Completa la tabla de verdad de p → q. Solo hay una fila que da Falso — encuéntrala.',
+      headers: ['p', 'q', 'p → q'],
+      givenRows: [[null,null,null],[null,null,null],[null,null,null],[null,null,null]],
+      answers:   [['V','V','V'],['V','F','F'],['F','V','V'],['F','F','V']],
+      colsEditable: [false,false,true],
+      preset: [['V','V',null],['V','F',null],['F','V',null],['F','F',null]],
+      points: 100,
+      explanation: 'El condicional solo es Falso cuando prometemos algo verdadero (p=V) pero la conclusión falla (q=F). "Si prometo llegar y no llego, mentí."'
+    },
+    {
+      type: 'eval_formula',
+      label: 'Tarea 2 — Aplicar Modus Ponens y Tollens',
+      instruction: 'Usa las reglas de inferencia. Para cada caso escribe la conclusión (usa la letra de la proposición con o sin ¬).',
+      items: [
+        { formula: 'Dado: p → q  y  p = V. ¿Qué concluyes sobre q?', p: true, q: null, answer: 'V', hint: 'Modus Ponens: p→q, p ∴ q' },
+        { formula: 'Dado: r → s  y  s = F. ¿Qué concluyes sobre r?', p: null, q: null, answer: 'F', hint: 'Modus Tollens: r→s, ¬s ∴ ¬r' },
+        { formula: 'Dado: p → q, q → r, p = V. ¿Qué valor tiene r?', p: true, q: null, answer: 'V', hint: 'Silogismo Hipotético + Modus Ponens' },
+      ],
+      points: 120,
+    },
+    {
+      type: 'write_conclusion',
+      label: 'Tarea Final — Resolver el Testamento',
+      instruction: 'El testamento dice:\n"Si el heredero conoce la lógica, entonces puede abrir la caja fuerte."\n"Si puede abrir la caja fuerte, entonces encontrará la herencia."\n"El heredero conoce la lógica."\n\nEscribe la conclusión lógica final en lenguaje natural:',
+      answer_key: ['herencia', 'encontrar', 'encontrará', 'encontrar la herencia', 'hallará la herencia', 'el heredero encontrará la herencia', 'encontrará la herencia'],
+      formal: 'p→q, q→r, p ∴ r (Silogismo Hipotético + Modus Ponens)',
+      points: 150,
+      hint: 'Aplica el Silogismo Hipotético: p→q y q→r nos dan p→r. Luego, como p es V...',
+      placeholder: 'Escribe aquí tu conclusión...'
+    }
+  ]
+}
+
+];
+
+/* ═══════════════════════════════════════════════
+   RENDER ENGINE
+═══════════════════════════════════════════════ */
+function startCase(idx) {
+  G.caseIdx = idx;
+  G.stepIdx = 0;
+  showScreen('screen-game');
+  renderStep();
+}
+
+function renderStep() {
+  updateHUD();
+  const c = CASES[G.caseIdx];
+  const s = c.steps[G.stepIdx];
+  const isFirst = G.stepIdx === 0;
+  const container = document.getElementById('case-container');
+
+  let html = '';
+
+  // Case header (only on first step)
+  if (isFirst) {
+    html += `
+    <div class="case-card" data-label="${c.number}" style="margin-bottom:20px; animation:slideIn 0.4s ease backwards;">
+      <div class="paper-texture"></div>
+      <div class="case-number">${c.number}</div>
+      <div class="case-title">${c.icon} ${c.title}</div>
+      <div class="case-subtitle">${c.subtitle}</div>
+    </div>
+    <div class="theory-card" data-label="📚 Expediente Teórico" style="animation:slideIn 0.5s 0.1s ease backwards;">
+      <div class="paper-texture"></div>
+      ${c.theory}
+    </div>`;
+  }
+
+  // Step card
+  html += `<div class="task-section" data-label="🔍 ${s.label}" id="task-card" style="animation:slideIn 0.4s ${isFirst?'0.25s':'0s'} ease backwards;">
+    <div class="paper-texture"></div>
+    <div class="task-title">${s.label.split('—')[1]?.trim() || s.label}</div>
+    <p style="font-size:0.87rem;color:var(--typewriter);line-height:1.75;margin-bottom:18px;white-space:pre-line;">${s.instruction}</p>
+    <div id="task-body"></div>
+    <div class="feedback-panel" id="step-feedback"></div>
+    <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:6px;">
+      <button class="btn-verify" id="btn-verify" onclick="verifyStep()">🔍 Verificar deducción</button>
+      <button class="btn-next" id="btn-next" onclick="nextStep()">Siguiente pista →</button>
+    </div>
+  </div>`;
+
+  container.innerHTML = html;
+  container.scrollIntoView({behavior:'smooth', block:'start'});
+
+  // Render task body
+  const body = document.getElementById('task-body');
+  if (s.type === 'classify') renderClassify(body, s);
+  else if (s.type === 'write_props') renderWriteProps(body, s);
+  else if (s.type === 'truth_fill') renderTruthFill(body, s);
+  else if (s.type === 'eval_formula') renderEvalFormula(body, s);
+  else if (s.type === 'connect') renderConnect(body, s);
+  else if (s.type === 'write_conclusion') renderWriteConclusion(body, s);
+}
+
+/* ═══════════════════════════════════════════════
+   TASK: CLASSIFY (drag & drop)
+═══════════════════════════════════════════════ */
+function renderClassify(body, s) {
+  // Shuffle items
+  const items = [...s.items].sort(() => Math.random()-0.5);
+
+  body.innerHTML = `
+    <div class="prop-area" id="classify-source">
+      ${items.map((it,i)=>`<div class="prop-pill" draggable="true" data-idx="${s.items.indexOf(it)}" id="cpill-${s.items.indexOf(it)}">${it.text}</div>`).join('')}
+    </div>
+    <div class="classify-zones">
+      <div class="classify-zone" id="zone-yes">
+        <div class="classify-title">✅ Es Proposición</div>
+        <div class="classify-chips" id="chips-yes"></div>
+      </div>
+      <div class="classify-zone" id="zone-no">
+        <div class="classify-title">❌ No es Proposición</div>
+        <div class="classify-chips" id="chips-no"></div>
+      </div>
+    </div>
+  `;
+
+  // Drag events
+  body.querySelectorAll('.prop-pill').forEach(pill => {
+    pill.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('text', pill.dataset.idx);
+      pill.classList.add('dragging');
+    });
+    pill.addEventListener('dragend', () => pill.classList.remove('dragging'));
+  });
+
+  ['zone-yes','zone-no'].forEach(zid => {
+    const zone = document.getElementById(zid);
+    zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      const idx = parseInt(e.dataTransfer.getData('text'));
+      const pill = document.getElementById('cpill-'+idx);
+      if (!pill) return;
+      const chips = zone.querySelector('.classify-chips');
+      const clone = pill.cloneNode(true);
+      clone.removeAttribute('draggable');
+      clone.style.cursor='default';
+      // Add remove on click
+      clone.onclick = () => {
+        clone.remove();
+        pill.classList.remove('used');
+      };
+      chips.appendChild(clone);
+      pill.classList.add('used');
+    });
+  });
+}
+
+function verifyClassify(s) {
+  let correct = 0, total = s.items.length;
+  const yesChips = document.getElementById('chips-yes').querySelectorAll('.prop-pill');
+  const noChips  = document.getElementById('chips-no').querySelectorAll('.prop-pill');
+
+  yesChips.forEach(chip => {
+    const idx = parseInt(chip.dataset.idx);
+    if (s.items[idx].isProposition) correct++;
+  });
+  noChips.forEach(chip => {
+    const idx = parseInt(chip.dataset.idx);
+    if (!s.items[idx].isProposition) correct++;
+  });
+
+  const placed = yesChips.length + noChips.length;
+  if (placed < total) return { ok: false, msg: `⚠️ Aún faltan ${total-placed} pistas por clasificar.` };
+  if (correct === total) return { ok: true, pts: s.points, msg: s.explanation || '¡Clasificación perfecta!' };
+  return { ok: false, msg: `Hay ${total-correct} errores. Revisa qué enunciados no tienen valor de verdad definido.` };
+}
+
+/* ═══════════════════════════════════════════════
+   TASK: WRITE PROPS
+═══════════════════════════════════════════════ */
+function renderWriteProps(body, s) {
+  body.innerHTML = s.items.map((item,i) => `
+    <div class="step-row">
+      <div class="step-num">${i+1}</div>
+      <div class="step-content">
+        <div class="step-label">Dato</div>
+        <div class="step-instruction">${item.given}</div>
+        <div class="step-label">Pregunta</div>
+        <div class="step-instruction">${item.ask}</div>
+        <input class="logic-input" id="wp-${i}" placeholder="Escribe aquí..." autocomplete="off" spellcheck="false">
+        <div class="hint-strip" id="wph-${i}">💡 ${item.hint}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function verifyWriteProps(s) {
+  let correct = 0;
+  s.items.forEach((item,i) => {
+    const inp = document.getElementById('wp-'+i);
+    const val = inp.value.trim().replace(/\s/g,'');
+    const ans = item.answer.replace(/\s/g,'');
+    if (val.toLowerCase() === ans.toLowerCase()) {
+      inp.classList.add('correct'); inp.classList.remove('wrong');
+      correct++;
+    } else {
+      inp.classList.add('wrong'); inp.classList.remove('correct');
+    }
+  });
+  if (correct === s.items.length) return { ok: true, pts: s.points, msg: '¡Perfecto! Todas las notaciones son correctas.' };
+  return { ok: false, msg: `${s.items.length - correct} respuesta(s) incorrecta(s). Recuerda: la negación se escribe ¬ antes de la letra proposicional.` };
+}
+
+/* ═══════════════════════════════════════════════
+   TASK: TRUTH TABLE FILL
+═══════════════════════════════════════════════ */
+function renderTruthFill(body, s) {
+  const rows = s.preset;
+  let html = '<table class="tt-grid"><thead><tr>';
+  s.headers.forEach(h => html += `<th>${h}</th>`);
+  html += '</tr></thead><tbody>';
+  rows.forEach((row,ri) => {
+    html += '<tr>';
+    row.forEach((cell,ci) => {
+      const editable = s.colsEditable[ci];
+      const val = cell || '?';
+      const cls = !editable ? 'tt-cell-btn locked val-'+val : 'tt-cell-btn';
+      html += `<td><button class="${cls}" id="tt-${ri}-${ci}" ${editable?`onclick="toggleTT(${ri},${ci})"`:''}>${val}</button></td>`;
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  body.innerHTML = html;
+}
+
+function toggleTT(ri, ci) {
+  const btn = document.getElementById(`tt-${ri}-${ci}`);
+  if (btn.textContent === '?') { btn.textContent='V'; btn.className='tt-cell-btn val-V'; }
+  else if (btn.textContent === 'V') { btn.textContent='F'; btn.className='tt-cell-btn val-F'; }
+  else { btn.textContent='V'; btn.className='tt-cell-btn val-V'; }
+}
+
+function verifyTruthFill(s) {
+  let allCorrect = true;
+  const rows = s.answers;
+  rows.forEach((row,ri) => {
+    row.forEach((ans,ci) => {
+      if (!s.colsEditable[ci]) return;
+      const btn = document.getElementById(`tt-${ri}-${ci}`);
+      if (btn && btn.textContent === ans) {
+        btn.style.background = '#e8f5e9'; btn.style.color = 'var(--green)'; btn.style.borderColor='var(--green)';
+      } else if (btn) {
+        btn.style.background = '#fde8e8'; btn.style.color = 'var(--red)'; btn.style.borderColor='var(--red2)';
+        allCorrect = false;
+      }
+    });
+  });
+  if (allCorrect) return { ok: true, pts: s.points, msg: s.explanation || '¡Tabla de verdad completada correctamente!' };
+  return { ok: false, msg: 'Algunas celdas son incorrectas. Las celdas en rojo necesitan corrección. Piensa en la definición del conectivo.' };
+}
+
+/* ═══════════════════════════════════════════════
+   TASK: EVAL FORMULA
+═══════════════════════════════════════════════ */
+function renderEvalFormula(body, s) {
+  body.innerHTML = s.items.map((item,i) => `
+    <div class="step-row">
+      <div class="step-num">${i+1}</div>
+      <div class="step-content">
+        <div class="formula-stamp" style="margin-bottom:10px; display:inline-block;">${item.formula}</div>
+        <br>
+        <input class="logic-input" id="ef-${i}" placeholder="Escribe V o F..." maxlength="4" autocomplete="off" spellcheck="false" style="max-width:200px;">
+        <div class="hint-strip" id="efh-${i}">💡 ${item.hint}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function verifyEvalFormula(s) {
+  let correct = 0;
+  s.items.forEach((item,i) => {
+    const inp = document.getElementById('ef-'+i);
+    const val = inp.value.trim().toUpperCase();
+    if (val === item.answer.toUpperCase()) {
+      inp.classList.add('correct'); inp.classList.remove('wrong'); correct++;
+    } else {
+      inp.classList.add('wrong'); inp.classList.remove('correct');
+    }
+  });
+  if (correct === s.items.length) return { ok: true, pts: s.points, msg: '¡Todas las evaluaciones son correctas! Dominas los conectivos.' };
+  return { ok: false, msg: `${s.items.length-correct} respuesta(s) incorrecta(s). Recuerda evaluar paso a paso respetando la jerarquía: primero ¬, luego ∧, luego ∨.` };
+}
+
+/* ═══════════════════════════════════════════════
+   TASK: CONNECT (matching)
+═══════════════════════════════════════════════ */
+let connSelected = null;
+let connMatched = [];
+
+function renderConnect(body, s) {
+  connSelected = null; connMatched = [];
+  const shuffledDesc = [...s.pairs].sort(()=>Math.random()-0.5);
+  body.innerHTML = `
+    <div class="connector-area">
+      <div class="conn-col">
+        <div class="conn-label">Fórmulas</div>
+        ${s.pairs.map((p,i)=>`<div class="conn-item" id="conn-f-${i}" onclick="connClick('f',${i})">${p.formula}</div>`).join('')}
+      </div>
+      <div class="conn-arrow">↔</div>
+      <div class="conn-col">
+        <div class="conn-label">Descripciones</div>
+        ${shuffledDesc.map((p,i)=>`<div class="conn-item" id="conn-d-${i}" data-orig="${s.pairs.indexOf(p)}" onclick="connClick('d',${i})">${p.description}</div>`).join('')}
+      </div>
+    </div>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted);margin-top:8px;">Haz clic en una fórmula y luego en su descripción para conectarlas.</div>
+  `;
+  window._connPairs = s.pairs;
+  window._connDesc  = shuffledDesc;
+}
+
+function connClick(type, idx) {
+  if (connMatched.includes(type+idx)) return;
+  const el = document.getElementById(`conn-${type}-${idx}`);
+  if (!connSelected) {
+    connSelected = { type, idx, el };
+    el.classList.add('selected');
+  } else {
+    if (connSelected.type === type) {
+      connSelected.el.classList.remove('selected');
+      connSelected = { type, idx, el };
+      el.classList.add('selected');
+      return;
+    }
+    // Try match
+    let fIdx = type==='f' ? idx : connSelected.idx;
+    let dIdx = type==='d' ? idx : connSelected.idx;
+    const dEl = document.getElementById(`conn-d-${dIdx}`);
+    const origIdx = parseInt(dEl.dataset.orig);
+    if (fIdx === origIdx) {
+      // Correct
+      document.getElementById(`conn-f-${fIdx}`).classList.remove('selected');
+      document.getElementById(`conn-f-${fIdx}`).classList.add('matched');
+      dEl.classList.remove('selected'); dEl.classList.add('matched');
+      connMatched.push('f'+fIdx, 'd'+dIdx);
+    } else {
+      // Wrong
+      el.classList.add('wrong-flash'); connSelected.el.classList.add('wrong-flash');
+      setTimeout(()=>{ el.classList.remove('wrong-flash','selected'); connSelected.el.classList.remove('wrong-flash','selected'); },400);
+    }
+    connSelected = null;
+  }
+}
+
+function verifyConnect(s) {
+  const total = s.pairs.length * 2;
+  if (connMatched.length < total) return { ok: false, msg: `Aún faltan ${(total-connMatched.length)/2} parejas por conectar.` };
+  return { ok: true, pts: s.points, msg: '¡Conexiones perfectas! Tradujiste todas las fórmulas a lenguaje natural correctamente.' };
+}
+
+/* ═══════════════════════════════════════════════
+   TASK: WRITE CONCLUSION
+═══════════════════════════════════════════════ */
+function renderWriteConclusion(body, s) {
+  body.innerHTML = `
+    <div class="clue-box" style="margin-bottom:14px;font-family:'IBM Plex Mono',monospace;font-size:0.8rem;">
+      Forma formal: <strong>${s.formal}</strong>
+    </div>
+    <textarea class="logic-input" id="wc-input" rows="3" placeholder="${s.placeholder}" style="resize:vertical; line-height:1.6;"></textarea>
+    <div class="hint-strip">💡 ${s.hint}</div>
+  `;
+}
+
+function verifyWriteConclusion(s) {
+  const val = document.getElementById('wc-input').value.trim().toLowerCase();
+  const inp = document.getElementById('wc-input');
+  const matched = s.answer_key.some(k => val.includes(k.toLowerCase()));
+  if (val.length < 6) return { ok: false, msg: 'Escribe una conclusión más completa.' };
+  if (matched) {
+    inp.classList.add('correct'); inp.classList.remove('wrong');
+    return { ok: true, pts: s.points, msg: `¡Caso resuelto! ${s.formal}. El silogismo hipotético encadenó p→q y q→r para obtener p→r, y como p=V, concluimos r=V.` };
+  }
+  inp.classList.add('wrong'); inp.classList.remove('correct');
+  return { ok: false, msg: 'Tu conclusión no captura el resultado final. Pista: si p→q y q→r forman una cadena, y p es verdadero, ¿qué pasa con r?' };
+}
+
+/* ═══════════════════════════════════════════════
+   VERIFY DISPATCHER
+═══════════════════════════════════════════════ */
+function verifyStep() {
+  const s = CASES[G.caseIdx].steps[G.stepIdx];
+  let result;
+  if (s.type === 'classify')         result = verifyClassify(s);
+  else if (s.type === 'write_props') result = verifyWriteProps(s);
+  else if (s.type === 'truth_fill')  result = verifyTruthFill(s);
+  else if (s.type === 'eval_formula') result = verifyEvalFormula(s);
+  else if (s.type === 'connect')     result = verifyConnect(s);
+  else if (s.type === 'write_conclusion') result = verifyWriteConclusion(s);
+
+  const fb = document.getElementById('step-feedback');
+  fb.className = 'feedback-panel show ' + (result.ok ? 'success' : 'error');
+  fb.innerHTML = result.ok
+    ? `<strong>✅ ¡Deducción correcta!</strong>${result.msg}`
+    : `<strong>❌ Revisa tu razonamiento</strong>${result.msg}`;
+
+  if (result.ok) {
+    G.score += result.pts;
+    G.caseScores[G.caseIdx] = (G.caseScores[G.caseIdx]||0) + result.pts;
+    updateHUD();
+    document.getElementById('btn-verify').disabled = true;
+    document.getElementById('btn-next').style.display = 'inline-block';
+    const allSteps = CASES[G.caseIdx].steps.length;
+    const isLastStep = G.stepIdx === allSteps - 1;
+    const isLastCase = G.caseIdx === CASES.length - 1;
+    if (isLastStep && isLastCase) {
+      document.getElementById('btn-next').textContent = '🔒 Cerrar caso final →';
+    } else if (isLastStep) {
+      document.getElementById('btn-next').textContent = `Abrir Exp. #00${G.caseIdx+2} →`;
+    } else {
+      document.getElementById('btn-next').textContent = 'Siguiente pista →';
+    }
+  }
+}
+
+function nextStep() {
+  const c = CASES[G.caseIdx];
+  G.stepIdx++;
+  if (G.stepIdx >= c.steps.length) {
+    G.caseIdx++;
+    G.stepIdx = 0;
+    if (G.caseIdx >= CASES.length) {
+      showEnd(); return;
+    }
+  }
+  renderStep();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ═══════════════════════════════════════════════
+   END / RESTART
+═══════════════════════════════════════════════ */
+function showEnd() {
+  document.getElementById('final-score').textContent = G.score;
+  document.getElementById('final-breakdown').innerHTML = CASES.map((c,i)=>
+    `Exp. #00${i+1} "${c.title}": ${G.caseScores[i] || 0} pts`
+  ).join('<br>');
+  showScreen('screen-end');
+}
+
+function restartGame() {
+  G = { caseIdx:0, stepIdx:0, score:0, caseScores:[0,0,0], totalSteps:0 };
+  connSelected=null; connMatched=[];
+  showScreen('screen-welcome');
+}
+
+/* ═══════════════════════════════════════════════
+   SCREEN SWITCHER
+═══════════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
+</body>
+</html>
